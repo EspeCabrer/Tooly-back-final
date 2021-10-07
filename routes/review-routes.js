@@ -3,13 +3,10 @@ const router = express.Router();
 const Review = require("../models/Review.model");
 const Product = require("../models/Product.model");
 
-//<------------------RETRIEVES A ESPECIFIC REVIEW BT ID------------------------------->
+//<------------------RETRIEVES A ESPECIFIC REVIEW BY ID------------------------------->
 
 router.get("/review/:id", (req, res) => {
-    console.log("hey")
 	const { id } = req.params;
-    console.log ("/reviw: ", id ) 
-
     Review.findById(id)
 	    .populate('product')
         .populate('user')
@@ -21,35 +18,32 @@ router.get("/review/:id", (req, res) => {
 			);
 });
 
-//<------------------???????????????????????????------------------------------->
+//<------------------ROUTE TO POST A REVIEW --------------------------------------->
 
 router.post("/review", (req,res,next)=>{
-
-    const {content, rating, productId} = req.body;
-
-    const oldRating = []
-    oldRating.push(parseInt(rating, 10))
-    const ratingSum = oldRating.reduce(function(acc, current) {return acc + current} )
-
-    const averageRating = ratingSum / oldRating.length
-
-
-    Product.findById(productId)
-        .populate("reviews")
-        .then(result => { result.reviews.map(review => oldRating.push(review.rating))
-        })
-
-
+    const {content, rating, productId} = req.body;   
     Review.create({content, rating, product: productId})
         .then((newReview)=>{
-            Product.findByIdAndUpdate(projectId,{
-                $push:{reviews: newReview._id},
-                $push:{averageRating: averageRating}
-                
-            }),res.json(newReview)
+            Product.findByIdAndUpdate(productId,{
+                $push:{reviews: newReview._id}
+            }, {new:true})
+            .then(reviewedProduct => {
+                let newAverageRating = (reviewedProduct.averageRating + rating) / (reviewedProduct.reviews.length)
+                Product.findByIdAndUpdate(productId,{
+                    $push:{averageRating: newAverageRating}
+                },{new:true})
+                .then(()=>{   
+                    Product.findById(productId)
+                        .populate("reviews")
+                        .then(result => { 
+                            result.reviews.map(review =>{ oldRating.push(review.rating)  
+                            })                
+                        });
+                })
+            })
+            res.json(newReview)
         })
-        
         .catch((err) => res.json(err));
-});
+ })
 
 module.exports = router;
