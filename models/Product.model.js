@@ -11,6 +11,10 @@ const productSchema = new Schema({
     category:String,
     bookDates:[],
     adquisitionYear: String,
+    location:{
+      lat:String,
+      lng:String
+    },
     reviews:[{
       type: Schema.Types.ObjectId,
       ref: "Review"

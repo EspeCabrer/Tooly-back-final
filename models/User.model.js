@@ -5,20 +5,20 @@ const userSchema = new Schema({
   password: String,
   email: String,
   address:{
-    street: String,
-    number: String,
-    city: String,
-    postalCode: String,
+    street: {type: String, default: "street"},
+    number: {type: String, default: "number"},
+    city: {type: String, default: "city"},
+    postalCode: {type: String, default:"postalCode"}
   },
   location:{
     lat:String,
     lng:String
   },
-  tel: Number,
-  profileImg: String,
+  tel: {type: Number, default: 000000000},
+  profileImg: {type: String, default: "https://w7.pngwing.com/pngs/858/581/png-transparent-profile-icon-user-computer-icons-system-chinese-wind-title-column-miscellaneous-service-logo.png"},
   products: [{
     type: Schema.Types.ObjectId,
-    ref: "Product"
+    ref: "Product",
   }],
   transactions:[{
     type: Schema.Types.ObjectId,

@@ -8,38 +8,22 @@ const { isAuthenticated } = require("../middleware/jwt.middleware.js");
 const router = express.Router();
 const saltRounds = 10;
 
-// POST /auth/signup  - Creates a new user in the database
 router.post("/signup", (req, res, next) => {
-  console.log("Req body  signup:", req.body);
-
   const { username, password, email } = req.body; //<------------REACT CONTROLED FORM INFO STORED----------------->
 
-  /*   console.log("req.body:    ", req.body)
-    console.log("signup") */
-  // Check if email or password or name are provided as empty string
   if (email === "" || password === "" || username === "") {
     res.status(400).json({ message: "Provide email, password and name" });
     return;
   }
 
-  // Use regex to validate the email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   if (!emailRegex.test(email)) {
     res.status(400).json({ message: "Provide a valid email address." });
     return;
   }
 
-  // Use regex to validate the password format
-  /*   const passwordRegex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{4,}/;
-    if (!passwordRegex.test(password)) {
-      res.status(400).json({ message: 'Password must have at least 4 characters and contain at least one number, one lowercase and one uppercase letter.' });
-      return;
-    } */
-
-  // Check the users collection if a user with the same email already exists
   User.findOne({ email })
     .then((foundUser) => {
-      // If the user with the same email already exists, send an error response
       if (foundUser) {
         res.status(400).json({ message: "User already exists." });
         return;
