@@ -7,70 +7,59 @@ const Transaction = require("../models/Transaction.model")
 const User = require("../models/User.model")
 const Product = require("../models/Product.model")
 
-router.get("/transaction", isAuthenticated, (req, res, next) =>{
+//<------------------ROUTE TO GET A TRANSACTION--------------------------------------->
 
-    const currentUserId = req.payload._id
-    console.log('transaction:',currentUserId)
+router.get("/transaction/profile/:id", (req, res, next) => {
+  const id = req.params.id;
 
-    Transaction.find( 
-        {$or: [
-            {owner:currentUserId},
-            {renter:currentUserId}
-          ]
-        })
-    .then(allTransactions => {res.json(allTransactions)
-    
-    console.log(allTransactions)})
-    .catch(err => console.log(err))
+  Transaction.find({ $or: [{ owner: id }, { renter: id }] })
+    .populate("product")
+    .populate("renter")
+    .populate("owner")
 
+    .then((allTransactions) => res.json(allTransactions))
+    .catch((err) => console.log(err));
+});
 
-})
+//<------------------ROUTE TO POST A TRANSACTION --------------------------------------->
 
-router.post("/transaction" ,isAuthenticated, (req, res, next ) =>{
+router.post("/transaction", isAuthenticated, (req, res, next) => {
+  const token = req.payload;
+  const { _id, ownerId } = req.body.product;
+  const { endDate } = req.body;
+  const { startDate } = req.body;
+  const { excludedDays } = req.body;
 
+  const dateFormater = (str) => {
+    const startYear = str.slice(0, 4);
+    const startMonth = str.slice(5, 7);
+    const startDay = str.slice(8, 10);
+    return `${startDay}-${startMonth}-${startYear}`;
+  };
 
-const token = req.payload
-const {_id, ownerId} = req.body.product
-const {endDate} = req.body
-const {startDate} = req.body
-const {excludedDays} = req.body
+  let formatedStartDate = dateFormater(startDate);
+  let formatedEndtDate = dateFormater(endDate);
 
-console.log(req.body)
+  Transaction.create({
+    renter: token._id,
+    owner: ownerId,
+    startDate: formatedStartDate,
+    endDate: formatedEndtDate,
+    product: _id,
+  })
 
-console.log("excluded",excludedDays)
-const dateFormater = (str) =>{
-
-    const startYear = str.slice(0,4);
-    const startMonth = str.slice(5,7);
-    const startDay = str.slice(8,10);
-    
-    return `${startDay}-${startMonth}-${startYear}`
-
-}
-
-let formatedStartDate = dateFormater(startDate)
-let formatedEndtDate = dateFormater(endDate)
-
-
-
-    Transaction.create({
-        renter:token._id, 
-        owner:ownerId,
-        startDate:formatedStartDate,
-        endDate:formatedEndtDate,
-        product:_id})
-        
-    .then(()=>{
-        for(let i =0; i < excludedDays.length; i++){
-            Product.findByIdAndUpdate(_id, { $push: {bookDates:excludedDays[i]}} , {new:true})
-            .then(response => console.log(response))
-        }
-
-        
+    .then(() => {
+      for (let i = 0; i < excludedDays.length; i++) {
+        Product.findByIdAndUpdate(
+          _id,
+          { $push: { bookDates: excludedDays[i] } },
+          { new: true }
+        )
+          .then((response) => res.json(response))
+          .catch((err) => res.json(err));
+      }
     })
-    .catch(err => console.log(err))
-
-
-})
+    .catch((err) => res.json(err));
+});
 
 module.exports = router
