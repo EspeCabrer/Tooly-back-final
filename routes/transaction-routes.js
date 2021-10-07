@@ -10,7 +10,10 @@ const Product = require("../models/Product.model")
 //<------------------ROUTE TO GET A TRANSACTION--------------------------------------->
 
 router.get("/transaction/profile/:id", (req, res, next) => {
-  const id = req.params.id;
+   
+console.log("REQ.PARAMS ROUTE TRANSACTION : ", req.params)
+
+   const id = req.params.id;
 
   Transaction.find({ $or: [{ owner: id }, { renter: id }] })
     .populate("product")
@@ -25,7 +28,7 @@ router.get("/transaction/profile/:id", (req, res, next) => {
 
 router.post("/transaction", isAuthenticated, (req, res, next) => {
   const token = req.payload;
-  const { _id, ownerId } = req.body.product;
+  const { _id, owner } = req.body.product;
   const { endDate } = req.body;
   const { startDate } = req.body;
   const { excludedDays } = req.body;
@@ -42,13 +45,12 @@ router.post("/transaction", isAuthenticated, (req, res, next) => {
 
   Transaction.create({
     renter: token._id,
-    owner: ownerId,
+    owner: owner,
     startDate: formatedStartDate,
     endDate: formatedEndtDate,
     product: _id,
   })
-
-    .then(() => {
+    .then((createdTransaction) => {
       for (let i = 0; i < excludedDays.length; i++) {
         Product.findByIdAndUpdate(
           _id,
@@ -57,7 +59,7 @@ router.post("/transaction", isAuthenticated, (req, res, next) => {
         )
           .then((response) => res.json(response))
           .catch((err) => res.json(err));
-      }
+      } return res.json (createdTransaction)
     })
     .catch((err) => res.json(err));
 });
