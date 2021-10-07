@@ -17,20 +17,38 @@ router.get("/product", (req, res) => {
 //<-----------------ROUTE TO CREATE A NEW PRODUCT-------------------------------------->
 
 router.post("/product", (req, res) => {
-	const { name, description, amount, photo, owner, category, adquisitionYear } = req.body;
-	let averageRating = 0
-
-	Product.create({ name, description, amount, photo, owner, category, adquisitionYear, reviews: [] , averageRating})
-	  .then((response) => {
-		  User.findByIdAndUpdate(owner, { 
-			  $push:{products: response._id}
-			/* res.json(response) */
-		})
-		.then(product => res.json(product))
-	})
-
-	  .catch((err) => res.json(err))});
-/* }); */
+  const { name, description, amount, photo, owner, category, adquisitionYear } =
+    req.body;
+  let averageRating = 0;
+  let defaultLocation = {
+    lat: "0",
+    lng: "0",
+  };
+  User.findById(owner).then((response) => {
+    if (response.location.lat !== undefined) {
+      defaultLocation.lat = response.location.lat;
+      defaultLocation.lng = response.location.lng;
+    }
+    Product.create({
+      name,
+      description,
+      amount,
+      photo,
+      owner,
+      category,
+      averageRating: averageRating,
+      adquisitionYear,
+      reviews: [],
+      location: { lat: defaultLocation.lat, lng: defaultLocation.lng },
+    })
+      .then((response) => {
+        User.findByIdAndUpdate(owner, {
+          $push: { products: response._id },
+        }).then((user) => res.json(user));
+      })
+      .catch((err) => res.json(err));
+  });
+});
 
 //<------------------RETRIEVES A ESPECIFIC PRODUCT BT ID------------------------------->
 

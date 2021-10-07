@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const nodemailer = require("nodemailer")
-//require("../templates/template")
 
 router.post('/send-email', (req, res, next) => {
 	let { email, subject, message } = req.body;
@@ -18,14 +17,10 @@ router.post('/send-email', (req, res, next) => {
 	  subject: subject, 
 	  text: message,
 	  html: `<b>${message}</b>`
-	  //html: templates.templateExample(message)
 	})
-/* 	console.log("EMAIL SENT") */
 	.then(info => {
-		console.log ('MESSAGE SENT', {email, subject, message, info})
 		res.json("ok")})
-	.catch(error => console.log(error));
+	.catch(error => res.json(error));
   });
-  
   
   module.exports = router
