@@ -11,8 +11,6 @@ const Product = require("../models/Product.model")
 
 router.get("/transaction/profile/:id", (req, res, next) => {
    
-console.log("REQ.PARAMS ROUTE TRANSACTION : ", req.params)
-
    const id = req.params.id;
 
   Transaction.find({ $or: [{ owner: id }, { renter: id }] })
@@ -20,18 +18,19 @@ console.log("REQ.PARAMS ROUTE TRANSACTION : ", req.params)
     .populate("renter")
     .populate("owner")
 
-    .then((allTransactions) => res.json(allTransactions))
-    .catch((err) => console.log(err));
+    .then((allTransactions) => {
+        res.json(allTransactions)})
+    .catch((err) => res.json(err));
 });
 
 //<------------------ROUTE TO POST A TRANSACTION --------------------------------------->
 
-router.post("/transaction", isAuthenticated, (req, res, next) => {
-  const token = req.payload;
+router.post("/transaction", (req, res, next) => {
+  
   const { _id, owner } = req.body.product;
   const { endDate } = req.body;
   const { startDate } = req.body;
-  const { excludedDays } = req.body;
+  const { excludedDays,userId } = req.body;
 
   const dateFormater = (str) => {
     const startYear = str.slice(0, 4);
@@ -44,7 +43,7 @@ router.post("/transaction", isAuthenticated, (req, res, next) => {
   let formatedEndtDate = dateFormater(endDate);
 
   Transaction.create({
-    renter: token._id,
+    renter: userId,
     owner: owner,
     startDate: formatedStartDate,
     endDate: formatedEndtDate,

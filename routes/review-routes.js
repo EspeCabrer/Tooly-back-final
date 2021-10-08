@@ -21,8 +21,8 @@ router.get("/review/:id", (req, res) => {
 //<------------------ROUTE TO POST A REVIEW --------------------------------------->
 
 router.post("/review", (req,res,next)=>{
-    const {content, rating, productId} = req.body;   
-    Review.create({content, rating, product: productId})
+    const {content, rating, productId, user} = req.body;   
+    Review.create({content, rating, product: productId, user})
         .then((newReview)=>{
             Product.findByIdAndUpdate(productId,{
                 $push:{reviews: newReview._id}
@@ -30,20 +30,14 @@ router.post("/review", (req,res,next)=>{
             .then(reviewedProduct => {
                 let newAverageRating = (reviewedProduct.averageRating + rating) / (reviewedProduct.reviews.length)
                 Product.findByIdAndUpdate(productId,{
-                    $push:{averageRating: newAverageRating}
-                },{new:true})
-                .then(()=>{   
-                    Product.findById(productId)
-                        .populate("reviews")
-                        .then(result => { 
-                            result.reviews.map(review =>{ oldRating.push(review.rating)  
-                            })                
-                        });
-                })
+                    averageRating: newAverageRating}
+                ,{new:true})
+                .then(()=>{res.json("ok")   
             })
             res.json(newReview)
         })
         .catch((err) => res.json(err));
  })
+})
 
 module.exports = router;

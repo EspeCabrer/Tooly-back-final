@@ -87,7 +87,6 @@ router.get("/product/category/:category", (req, res) => {
 //<-----------------ROUTE TO GET PRODUCTS BY SEARCH-------------------------------------->
 
 router.get("/product/search/:searchData", (req, res) => {
-	console.log("search: ", req.params)
 	let {searchData} = req.params;
 
 	Product.find( { $or:[ {name: { "$regex": `${searchData}`, "$options": "i" }}, {description: { "$regex": `${searchData}`, "$options": "i" }}]} )
@@ -100,8 +99,6 @@ router.get("/product/search/:searchData", (req, res) => {
 //<-----------------ROUTE TO GET FILTER PRODUCTS -------------------------------------->
 
 router.post("/product/filter", (req, res)=> {
-	console.log("/product/filter")
-	console.log("Req.body :", req.body)
 	const {amount, category, averageRating, nameSearch} = req.body
 	Product.find({ 
 		$and: [
